@@ -50,8 +50,8 @@ const workflowPresets: WorkflowPreset[] = [
       "Create a governed business glossary when the instance exposes create_glossary.",
     payload: {
       workflow: "createGlossary",
-      name: "Hackathon Stewardship",
-      description: "Business terms curated during the steward copilot demo.",
+      name: "Stewardship Terms",
+      description: "Business terms curated for governed metadata workflows.",
       mutuallyExclusive: false,
     },
   },
@@ -63,7 +63,7 @@ const workflowPresets: WorkflowPreset[] = [
       "Create a safe glossary term through the documented create_glossary_term tool.",
     payload: {
       workflow: "createGlossaryTerm",
-      glossary: "Hackathon Stewardship",
+      glossary: "Stewardship Terms",
       name: "Customer Acquisition Cost",
       description: "Total acquisition spend divided by acquired customers.",
     },
@@ -73,7 +73,7 @@ const workflowPresets: WorkflowPreset[] = [
     eyebrow: "Bonus",
     endpoint: "/api/workflows/write",
     description:
-      "Show judges how future governed actions are enabled only after tool-schema discovery.",
+      "Inspect how governed actions are enabled only after tool-schema discovery.",
     payload: {
       workflow: "inspectToolSchema",
       toolName: "create_test_case",
@@ -176,7 +176,7 @@ export function WorkflowShell() {
       <div className="mx-auto max-w-7xl">
         <section className="rounded-3xl border border-white/70 bg-white/85 p-8 shadow-2xl shadow-slate-900/10 backdrop-blur">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-700">
-            OpenMetadata MCP prototype
+            OpenMetadata MCP workspace
           </p>
           <div className="mt-4 grid gap-6 lg:grid-cols-[1.3fr_0.7fr] lg:items-end">
             <div>
@@ -190,7 +190,7 @@ export function WorkflowShell() {
               </p>
             </div>
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
-              <h2 className="font-semibold text-emerald-950">Demo Story</h2>
+              <h2 className="font-semibold text-emerald-950">Workflow Path</h2>
               <ol className="mt-3 space-y-2 text-sm text-emerald-900">
                 <li>1. Search for customer PII tables.</li>
                 <li>2. Inspect lineage before changing governance.</li>
@@ -205,8 +205,8 @@ export function WorkflowShell() {
           <section className="rounded-3xl border border-white/70 bg-white/90 p-5 shadow-xl shadow-slate-900/5">
             <h2 className="text-lg font-semibold">Guided Workflow Presets</h2>
             <p className="mt-1 text-sm text-slate-600">
-              Pick a judged demo moment. The JSON remains editable for live
-              sandbox differences.
+              Pick a workflow. The JSON remains editable for live environment
+              differences.
             </p>
             <div className="mt-5 space-y-3">
               {workflowPresets.map((preset) => {

@@ -29,7 +29,7 @@ describe("createMcpClient", () => {
 
     const client = createMcpClient({
       host: "https://sandbox.open-metadata.org/",
-      token: "demo-token",
+      token: "test-token",
       fetchFn: fetchFn as never,
     });
 

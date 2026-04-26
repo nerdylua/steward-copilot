@@ -1,8 +1,7 @@
 # OpenMetadata Steward Copilot
 
-OpenMetadata Steward Copilot is a hackathon prototype that connects a Next.js
-app to OpenMetadata MCP for metadata search, lineage analysis, glossary
-creation, and tool-schema inspection.
+OpenMetadata Steward Copilot is a Next.js application for metadata discovery,
+lineage inspection, and governed OpenMetadata MCP workflows.
 
 ## Setup
 
@@ -11,15 +10,14 @@ creation, and tool-schema inspection.
 3. Run `npm install`
 4. Run `npm run dev`
 
-## Demo Flow
+## Workflows
 
-1. Select **Search customer PII** to call `search_metadata`
-2. Select **Inspect impact** to call `get_entity_details` and `get_entity_lineage`
-3. Select **Create glossary** or **Create glossary term** for safe governance writes
-4. Select **Inspect extension schema** to show live schema-probed future actions
+The app supports:
 
-The payload editor stays editable so the demo can adapt to a sandbox or local
-OpenMetadata dataset without code changes.
+- Metadata search with `search_metadata`
+- Entity details and lineage inspection with `get_entity_details` and `get_entity_lineage`
+- Glossary and glossary-term creation with capability checks
+- Tool schema inspection for governed extension workflows
 
 ## Safety Model
 
@@ -30,15 +28,16 @@ OpenMetadata dataset without code changes.
   than attempting unavailable governance actions.
 - OpenMetadata remains the source of truth; the app stores only UI state.
 
-## Verification
+## Commands
 
 ```bash
+npm run dev
 npm run lint
 npm test
 npm run build
 npm run e2e
+npm run smoke
 ```
 
-`npm run smoke` is intentionally left as a real-instance check. It requires
-valid OpenMetadata credentials and prints discovered tools plus a sample
-`search_metadata` response.
+`npm run smoke` requires valid OpenMetadata credentials and prints discovered
+MCP tools plus a sample `search_metadata` response.

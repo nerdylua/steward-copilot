@@ -19,14 +19,14 @@ describe("runWriteWorkflow", () => {
 
     await runWriteWorkflow(client as never, capabilities, {
       workflow: "createGlossary",
-      name: "Hackathon Stewardship",
-      description: "Business terms curated during the steward copilot demo.",
+      name: "Stewardship Terms",
+      description: "Business terms curated for governed metadata workflows.",
       mutuallyExclusive: false,
     });
 
     expect(client.callTool).toHaveBeenCalledWith("create_glossary", {
-      name: "Hackathon Stewardship",
-      description: "Business terms curated during the steward copilot demo.",
+      name: "Stewardship Terms",
+      description: "Business terms curated for governed metadata workflows.",
       mutuallyExclusive: false,
     });
   });

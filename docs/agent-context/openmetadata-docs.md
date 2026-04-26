@@ -1,4 +1,4 @@
-# OpenMetadata Docs For This Prototype
+# OpenMetadata Docs For This Project
 
 - AI SDK: https://docs.open-metadata.org/v1.12.x/sdk/ai-sdk
 - MCP Server: https://docs.open-metadata.org/v1.12.x/how-to-guides/mcp
