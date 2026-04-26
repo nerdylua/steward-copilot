@@ -16,9 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OpenMetadata Steward Copilot",
+  title: "Steward Copilot | Governed OpenMetadata Workflows",
   description:
-    "Search metadata, inspect lineage, and run governance workflows through OpenMetadata MCP.",
+    "Run schema-aware metadata search, lineage review, and governed OpenMetadata MCP workflows from one guided workspace.",
 };
 
 export default function RootLayout({
