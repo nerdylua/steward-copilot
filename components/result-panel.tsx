@@ -5,12 +5,12 @@ type ResultPanelProps = {
 
 export function ResultPanel({ title = "MCP Output", result }: ResultPanelProps) {
   return (
-    <section className="rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl shadow-slate-950/10">
-      <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+    <section className="overflow-hidden rounded-[22px] border border-slate-950/10 bg-[#151515] shadow-[0_18px_40px_-30px_rgba(15,23,42,0.55)]">
+      <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-300">
           {title}
         </h2>
-        <span className="rounded-full bg-emerald-400/10 px-2.5 py-1 text-xs font-medium text-emerald-300">
+        <span className="rounded-full bg-[#F04D26]/15 px-2.5 py-1 text-xs font-medium text-orange-200">
           JSON-RPC response
         </span>
       </div>
