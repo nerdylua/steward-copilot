@@ -31,7 +31,7 @@ const workflowPresets: WorkflowPreset[] = [
       maxEntities: 3,
       upstreamDepth: 1,
       downstreamDepth: 2,
-      fallbackFqn: "sample_data.ecommerce_db.shopify.raw_customer",
+      fallbackFqn: "acme_nexus_raw_data.acme_raw.crm.customers",
     },
   },
   {
@@ -55,7 +55,7 @@ const workflowPresets: WorkflowPreset[] = [
     payload: {
       workflow: "impact",
       entityType: "table",
-      fqn: "sample_data.ecommerce_db.shopify.raw_customer",
+      fqn: "acme_nexus_raw_data.acme_raw.crm.customers",
       upstreamDepth: 2,
       downstreamDepth: 2,
     },
