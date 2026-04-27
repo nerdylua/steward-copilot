@@ -116,6 +116,10 @@ describe("runReadWorkflow", () => {
                     fullyQualifiedName:
                       "sample_data.ecommerce_db.shopify.raw_customer",
                   },
+                  {
+                    fullyQualifiedName:
+                      "sample_data.ecommerce_db.shopify.customer_profile",
+                  },
                 ],
               }),
             },
@@ -136,6 +140,22 @@ describe("runReadWorkflow", () => {
               text: "Downstream consumers include customer_360 and marketing_segments.",
             },
           ],
+        })
+        .mockResolvedValueOnce({
+          content: [
+            {
+              type: "text",
+              text: "customer_profile includes consent flags and household attributes.",
+            },
+          ],
+        })
+        .mockResolvedValueOnce({
+          content: [
+            {
+              type: "text",
+              text: "Downstream consumers include analytics_customer_profile.",
+            },
+          ],
         }),
     };
 
@@ -144,7 +164,6 @@ describe("runReadWorkflow", () => {
       query: "customer pii",
       entityType: "table",
       limit: 5,
-      maxEntities: 1,
       downstreamDepth: 2,
     });
 
@@ -163,11 +182,24 @@ describe("runReadWorkflow", () => {
       upstreamDepth: 1,
       downstreamDepth: 2,
     });
+    expect(client.callTool).toHaveBeenNthCalledWith(4, "get_entity_details", {
+      entityType: "table",
+      fqn: "sample_data.ecommerce_db.shopify.customer_profile",
+    });
+    expect(client.callTool).toHaveBeenNthCalledWith(5, "get_entity_lineage", {
+      entityType: "table",
+      fqn: "sample_data.ecommerce_db.shopify.customer_profile",
+      upstreamDepth: 1,
+      downstreamDepth: 2,
+    });
     expect((result as { summary: string }).summary).toContain(
       "PII Impact Report",
     );
     expect((result as { summary: string }).summary).toContain(
       "marketing_segments",
+    );
+    expect((result as { summary: string }).summary).toContain(
+      "analytics_customer_profile",
     );
   });
 });

@@ -24,7 +24,7 @@ export const readWorkflowSchema = z.discriminatedUnion("workflow", [
     limit: z.number().int().min(1).max(10).default(5),
     upstreamDepth: z.number().int().min(1).max(5).default(1),
     downstreamDepth: z.number().int().min(1).max(5).default(2),
-    maxEntities: z.number().int().min(1).max(3).default(1),
+    maxEntities: z.number().int().min(1).max(3).default(3),
     fallbackFqn: z.string().optional(),
   }),
 ]);

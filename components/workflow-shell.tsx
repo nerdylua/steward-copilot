@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 
 import { OpenMetadataIcon } from "@/components/openmetadata-icon";
 import { ResultPanel } from "@/components/result-panel";
@@ -23,13 +22,13 @@ const workflowPresets: WorkflowPreset[] = [
     eyebrow: "Copilot",
     endpoint: "/api/workflows/read",
     description:
-      "Search for PII tables, inspect the strongest match, fetch lineage, and return a steward-readable impact brief.",
+      "Search for PII tables, inspect the strongest matches, fetch lineage, and return a steward-readable impact brief.",
     payload: {
       workflow: "piiImpactReport",
       query: "customer pii",
       entityType: "table",
       limit: 5,
-      maxEntities: 1,
+      maxEntities: 3,
       upstreamDepth: 1,
       downstreamDepth: 2,
       fallbackFqn: "sample_data.ecommerce_db.shopify.raw_customer",
@@ -127,6 +126,23 @@ function extractSummary(response: unknown) {
   return null;
 }
 
+function extractWorkflowResult(response: unknown) {
+  if (
+    typeof response !== "object" ||
+    response === null ||
+    !("result" in response)
+  ) {
+    return null;
+  }
+
+  const result = (response as { result?: unknown }).result;
+  if (typeof result === "object" && result !== null) {
+    return result as Record<string, unknown>;
+  }
+
+  return null;
+}
+
 function resolveCopilotPreset(prompt: string) {
   const normalizedPrompt = prompt.toLowerCase();
   const piiImpactPreset = workflowPresets.find(
@@ -179,6 +195,7 @@ export function WorkflowShell() {
     message: "Choose a workflow preset, adjust the JSON if needed, then run it.",
   });
   const [isRunning, setIsRunning] = useState(false);
+  const [isSynthesizing, setIsSynthesizing] = useState(false);
 
   function choosePreset(preset: WorkflowPreset) {
     setSelectedPreset(preset);
@@ -200,6 +217,72 @@ export function WorkflowShell() {
 
     choosePreset(suggestion.preset);
     setCopilotReply(suggestion.reply);
+  }
+
+  async function synthesizePiiReport(responseBody: unknown) {
+    const workflowResult = extractWorkflowResult(responseBody);
+    if (workflowResult?.workflow !== "piiImpactReport") {
+      return responseBody;
+    }
+
+    setIsSynthesizing(true);
+    try {
+      const response = await fetch("/api/ai/synthesize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userGoal: copilotPrompt,
+          workflowResult,
+        }),
+      });
+      const contentType = response.headers.get("content-type") ?? "";
+      const synthesisBody = contentType.includes("application/json")
+        ? await response.json()
+        : { ok: false, error: await response.text() };
+      const synthesisResult = extractWorkflowResult(synthesisBody);
+
+      if (
+        response.ok &&
+        synthesisResult &&
+        typeof synthesisResult.summary === "string"
+      ) {
+        return {
+          ...(responseBody as Record<string, unknown>),
+          result: {
+            ...workflowResult,
+            aiModel: synthesisResult.model,
+            summary: synthesisResult.summary,
+            templatedSummary: workflowResult.summary,
+          },
+        };
+      }
+
+      return {
+        ...(responseBody as Record<string, unknown>),
+        result: {
+          ...workflowResult,
+          aiSynthesisError:
+            typeof synthesisBody === "object" &&
+            synthesisBody !== null &&
+            "error" in synthesisBody
+              ? (synthesisBody as { error: unknown }).error
+              : "AI synthesis did not return a summary.",
+        },
+      };
+    } catch (error) {
+      return {
+        ...(responseBody as Record<string, unknown>),
+        result: {
+          ...workflowResult,
+          aiSynthesisError:
+            error instanceof Error
+              ? error.message
+              : "AI synthesis failed before reaching the server.",
+        },
+      };
+    } finally {
+      setIsSynthesizing(false);
+    }
   }
 
   async function runWorkflow() {
@@ -229,6 +312,8 @@ export function WorkflowShell() {
         : { ok: false, error: await response.text() };
 
       setResult(responseBody);
+      setIsRunning(false);
+      setResult(await synthesizePiiReport(responseBody));
     } catch (error) {
       setResult({
         ok: false,
@@ -271,12 +356,6 @@ export function WorkflowShell() {
               </h1>
             </div>
           </div>
-          <Link
-            className="inline-flex h-9 items-center justify-center rounded-[12px] border border-slate-950/10 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-[#F04D26]/40 hover:text-slate-950"
-            href="/"
-          >
-            Landing page
-          </Link>
         </header>
 
         <div className="mt-8 grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
@@ -366,11 +445,15 @@ export function WorkflowShell() {
               </div>
               <button
                 className="rounded-[13px] bg-[#F04D26] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[#F04D26]/20 transition hover:bg-[#de4723] disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={isRunning}
+                disabled={isRunning || isSynthesizing}
                 onClick={runWorkflow}
                 type="button"
               >
-                {isRunning ? "Running..." : "Run workflow"}
+                {isRunning
+                  ? "Running..."
+                  : isSynthesizing
+                    ? "Synthesizing..."
+                    : "Run workflow"}
               </button>
             </div>
 
@@ -392,6 +475,7 @@ export function WorkflowShell() {
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_0.85fr]">
           <ResultPanel
+            renderMarkdown={Boolean(summary)}
             result={summary ?? result}
             title={summary ? "Copilot Summary" : "MCP Output"}
           />
