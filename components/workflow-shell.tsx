@@ -473,7 +473,7 @@ export function WorkflowShell() {
           </section>
         </div>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_0.85fr]">
+        <div className="mt-8 grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
           <ResultPanel
             renderMarkdown={Boolean(summary)}
             result={summary ?? result}
