@@ -87,4 +87,87 @@ describe("runReadWorkflow", () => {
       size: 3,
     });
   });
+
+  it("chains search, details, and lineage into a PII impact report", async () => {
+    const capabilities = buildCapabilityMap([
+      {
+        name: "search_metadata",
+        description: "Search metadata",
+      },
+      {
+        name: "get_entity_details",
+        description: "Get entity details",
+      },
+      {
+        name: "get_entity_lineage",
+        description: "Get entity lineage",
+      },
+    ]);
+    const client = {
+      callTool: vi
+        .fn()
+        .mockResolvedValueOnce({
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                data: [
+                  {
+                    fullyQualifiedName:
+                      "sample_data.ecommerce_db.shopify.raw_customer",
+                  },
+                ],
+              }),
+            },
+          ],
+        })
+        .mockResolvedValueOnce({
+          content: [
+            {
+              type: "text",
+              text: "raw_customer has email, phone, and address columns.",
+            },
+          ],
+        })
+        .mockResolvedValueOnce({
+          content: [
+            {
+              type: "text",
+              text: "Downstream consumers include customer_360 and marketing_segments.",
+            },
+          ],
+        }),
+    };
+
+    const result = await runReadWorkflow(client as never, capabilities, {
+      workflow: "piiImpactReport",
+      query: "customer pii",
+      entityType: "table",
+      limit: 5,
+      maxEntities: 1,
+      downstreamDepth: 2,
+    });
+
+    expect(client.callTool).toHaveBeenNthCalledWith(1, "search_metadata", {
+      query: "customer pii",
+      entityType: "table",
+      size: 5,
+    });
+    expect(client.callTool).toHaveBeenNthCalledWith(2, "get_entity_details", {
+      entityType: "table",
+      fqn: "sample_data.ecommerce_db.shopify.raw_customer",
+    });
+    expect(client.callTool).toHaveBeenNthCalledWith(3, "get_entity_lineage", {
+      entityType: "table",
+      fqn: "sample_data.ecommerce_db.shopify.raw_customer",
+      upstreamDepth: 1,
+      downstreamDepth: 2,
+    });
+    expect((result as { summary: string }).summary).toContain(
+      "PII Impact Report",
+    );
+    expect((result as { summary: string }).summary).toContain(
+      "marketing_segments",
+    );
+  });
 });

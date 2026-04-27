@@ -17,7 +17,7 @@ const footerColumns = [
     links: [
       { label: "Metadata search", href: "/home" },
       { label: "Lineage review", href: "/home" },
-      { label: "Glossary changes", href: "/home" },
+      { label: "Schema inspection", href: "/home" },
       { label: "Schema checks", href: "/home" },
     ],
   },

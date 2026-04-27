@@ -6,6 +6,7 @@ export interface MCPToolDefinition {
 
 export interface MCPToolCallResult {
   content: Array<{ type: string; text: string }>;
+  isError?: boolean;
 }
 
 export interface ToolCapabilityMap {

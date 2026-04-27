@@ -12,7 +12,7 @@ export function HeroContent({ stars }: { stars?: string | null }) {
                         </h1>
 
                         <p className="max-w-xl 2xl:max-w-2xl mx-auto md:mx-0 text-sm lg:text-[17px] xl:text-[14px] 2xl:text-[18px] min-[97.5rem]:text-[18px] text-[#A1A1AA] mb-10 md:mb-10 leading-relaxed font-sans">
-                            Steward Copilot turns OpenMetadata MCP tools into guided, schema-aware workflows for search, lineage review, glossary changes, and governance operations.
+                            Steward Copilot turns OpenMetadata MCP tools into guided, schema-aware workflows for search, lineage review, impact reports, and governance operations.
                         </p>
                     </div>
 

@@ -16,7 +16,6 @@ The app supports:
 
 - Metadata search with `search_metadata`
 - Entity details and lineage inspection with `get_entity_details` and `get_entity_lineage`
-- Glossary and glossary-term creation with capability checks
 - Tool schema inspection for governed extension workflows
 
 ## Safety Model

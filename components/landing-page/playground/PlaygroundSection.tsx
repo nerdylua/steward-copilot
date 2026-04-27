@@ -23,13 +23,13 @@ function createPlaygroundNodes(): Node[] {
         },
         {
             id: "n2",
-            type: "openaiNode",
+            type: "mcpToolNode",
             position: { x: 400, y: 260 },
             data: {
                 label: "Search Metadata",
                 subtitle: "Find candidate PII tables",
                 credentialId: "openmetadata-mcp",
-                model: "search_metadata",
+                toolName: "search_metadata",
                 prompt: "Find customer PII tables and return the most relevant assets.",
             },
         },
@@ -47,13 +47,13 @@ function createPlaygroundNodes(): Node[] {
         },
         {
             id: "n4",
-            type: "slackNode",
+            type: "governanceActionNode",
             position: { x: 920, y: 170 },
             data: {
-                label: "Create Glossary Term",
-                subtitle: "Governed write action",
+                label: "Inspect Tool Schema",
+                subtitle: "Capability-gated action",
                 credentialId: "openmetadata-mcp",
-                message: "Create glossary term after schema capability check.",
+                message: "Inspect create_test_case schema before enabling the action.",
             },
         },
         {

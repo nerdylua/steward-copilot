@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-type PlaygroundConfigNodeType = "manualTrigger" | "triggerNode" | "openaiNode" | "conditionNode" | "slackNode" | "logNode";
+type PlaygroundConfigNodeType = "manualTrigger" | "triggerNode" | "mcpToolNode" | "conditionNode" | "governanceActionNode" | "logNode";
 interface PlaygroundNodeConfigDialogProps {
     open: boolean;
     nodeId: string | null;
@@ -16,9 +16,9 @@ interface PlaygroundNodeConfigDialogProps {
 const SUPPORTED_NODE_TYPES = new Set<PlaygroundConfigNodeType>([
     "manualTrigger",
     "triggerNode",
-    "openaiNode",
+    "mcpToolNode",
     "conditionNode",
-    "slackNode",
+    "governanceActionNode",
     "logNode",
 ]);
 function getDefaultLabel(nodeType: string | null): string {
@@ -26,12 +26,12 @@ function getDefaultLabel(nodeType: string | null): string {
         case "manualTrigger":
         case "triggerNode":
             return "Start Review";
-        case "openaiNode":
+        case "mcpToolNode":
             return "Search Metadata";
         case "conditionNode":
             return "Lineage Gate";
-        case "slackNode":
-            return "Create Glossary Term";
+        case "governanceActionNode":
+            return "Inspect Tool Schema";
         case "logNode":
             return "Record Audit Trail";
         default:
@@ -49,7 +49,7 @@ function getDialogMeta(nodeType: string | null): {
                 title: "Review Trigger Settings",
                 description: "Customize the trigger label used in the interactive preview.",
             };
-        case "openaiNode":
+        case "mcpToolNode":
             return {
                 title: "Metadata Search Settings",
                 description: "Adjust the MCP tool and prompt for the preview execution.",
@@ -59,7 +59,7 @@ function getDialogMeta(nodeType: string | null): {
                 title: "Lineage Gate Settings",
                 description: "Choose which branch will run in the preview workflow execution.",
             };
-        case "slackNode":
+        case "governanceActionNode":
             return {
                 title: "Governance Action Settings",
                 description: "Edit the governed write action content for the preview.",
@@ -81,17 +81,17 @@ export function PlaygroundNodeConfigDialog({ open, nodeId, nodeType, nodeData, o
     const [label, setLabel] = useState(() => typeof initialData.label === "string" && initialData.label.trim().length > 0
         ? initialData.label
         : getDefaultLabel(nodeType));
-    const [model, setModel] = useState(() => typeof initialData.model === "string" ? initialData.model : "search_metadata");
+    const [toolName, setToolName] = useState(() => typeof initialData.toolName === "string" ? initialData.toolName : "search_metadata");
     const [prompt, setPrompt] = useState(() => typeof initialData.prompt === "string"
         ? initialData.prompt
         : "Find customer PII tables and return the most relevant assets.");
     const [previewRoute, setPreviewRoute] = useState<"govern" | "audit">(() => initialData.previewRoute === "audit" ? "audit" : "govern");
     const [subtitle, setSubtitle] = useState(() => typeof initialData.subtitle === "string"
         ? initialData.subtitle
-        : "Governed write action");
+        : "Capability-gated action");
     const [message, setMessage] = useState(() => typeof initialData.message === "string"
         ? initialData.message
-        : "Create glossary term after schema capability check.");
+        : "Inspect create_test_case schema before enabling the action.");
     const [logLevel, setLogLevel] = useState<"debug" | "info" | "warn" | "error">(() => initialData.level === "debug" ||
         initialData.level === "warn" ||
         initialData.level === "error"
@@ -109,8 +109,8 @@ export function PlaygroundNodeConfigDialog({ open, nodeId, nodeType, nodeData, o
             label: trimmedLabel,
             isConfigured: true,
         };
-        if (nodeType === "openaiNode") {
-            payload.model = model.trim() || "search_metadata";
+        if (nodeType === "mcpToolNode") {
+            payload.toolName = toolName.trim() || "search_metadata";
             payload.prompt = prompt.trim() || "Find customer PII tables and return the most relevant assets.";
             payload.credentialId = "openmetadata-mcp";
         }
@@ -118,9 +118,9 @@ export function PlaygroundNodeConfigDialog({ open, nodeId, nodeType, nodeData, o
             payload.routes = ["govern", "audit"];
             payload.previewRoute = previewRoute;
         }
-        else if (nodeType === "slackNode") {
-            payload.subtitle = subtitle.trim() || "Governed write action";
-            payload.message = message.trim() || "Create glossary term after schema capability check.";
+        else if (nodeType === "governanceActionNode") {
+            payload.subtitle = subtitle.trim() || "Capability-gated action";
+            payload.message = message.trim() || "Inspect create_test_case schema before enabling the action.";
             payload.credentialId = "openmetadata-mcp";
         }
         else if (nodeType === "logNode") {
@@ -145,10 +145,10 @@ export function PlaygroundNodeConfigDialog({ open, nodeId, nodeType, nodeData, o
               <Input value={label} onChange={(event) => setLabel(event.target.value)} className="bg-[#2D2D2E] border-[#444] text-white placeholder:text-white/30" placeholder={getDefaultLabel(nodeType)}/>
             </div>
 
-            {nodeType === "openaiNode" && (<>
+            {nodeType === "mcpToolNode" && (<>
                 <div className="space-y-2">
                   <Label className="text-white/80">MCP Tool</Label>
-                  <Input value={model} onChange={(event) => setModel(event.target.value)} className="bg-[#2D2D2E] border-[#444] text-white placeholder:text-white/30" placeholder="search_metadata"/>
+                  <Input value={toolName} onChange={(event) => setToolName(event.target.value)} className="bg-[#2D2D2E] border-[#444] text-white placeholder:text-white/30" placeholder="search_metadata"/>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-white/80">Prompt</Label>
@@ -164,14 +164,14 @@ export function PlaygroundNodeConfigDialog({ open, nodeId, nodeType, nodeData, o
                 </select>
               </div>)}
 
-            {nodeType === "slackNode" && (<>
+            {nodeType === "governanceActionNode" && (<>
                 <div className="space-y-2">
                   <Label className="text-white/80">Subtitle</Label>
-                  <Input value={subtitle} onChange={(event) => setSubtitle(event.target.value)} className="bg-[#2D2D2E] border-[#444] text-white placeholder:text-white/30" placeholder="Governed write action"/>
+                  <Input value={subtitle} onChange={(event) => setSubtitle(event.target.value)} className="bg-[#2D2D2E] border-[#444] text-white placeholder:text-white/30" placeholder="Capability-gated action"/>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-white/80">Message</Label>
-                  <textarea value={message} onChange={(event) => setMessage(event.target.value)} rows={3} className="w-full rounded-md border border-[#444] bg-[#2D2D2E] px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-ring resize-none" placeholder="Create glossary term after schema capability check."/>
+                  <textarea value={message} onChange={(event) => setMessage(event.target.value)} rows={3} className="w-full rounded-md border border-[#444] bg-[#2D2D2E] px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-ring resize-none" placeholder="Inspect create_test_case schema before enabling the action."/>
                 </div>
               </>)}
 

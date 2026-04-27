@@ -130,7 +130,7 @@ export function F2WorkflowRunning() {
                     Guided governance flows
                 </h3>
                 <p className="text-xs sm:text-sm lg:text-base text-[#7D7D87] leading-[18px] sm:leading-[20px] lg:leading-[22px]">
-                    Follow repeatable paths for metadata search, lineage impact, and governed glossary updates.
+                    Follow repeatable paths for metadata search, lineage impact, and schema-aware governance checks.
                 </p>
             </div>
         </div>);

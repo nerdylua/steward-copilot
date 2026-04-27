@@ -1,4 +1,4 @@
-import { BookOpen, Database, GitBranch, Search, ShieldCheck, Sparkles } from "lucide-react";
+import { ClipboardCheck, Database, GitBranch, Search, ShieldCheck, Sparkles } from "lucide-react";
 
 const playbooks = [
   {
@@ -30,13 +30,13 @@ const playbooks = [
     ],
   },
   {
-    title: "Glossary stewardship",
-    subtitle: "Validate capabilities, create glossary assets, and keep definitions consistent.",
+    title: "Schema-aware extensions",
+    subtitle: "Validate tool contracts before enabling governed metadata operations.",
     accent: "#F04D26",
     nodes: [
       { label: "Check schema", detail: "tool contract", x: 7, y: 43, icon: Sparkles },
-      { label: "Create glossary", detail: "business domain", x: 36, y: 21, icon: BookOpen },
-      { label: "Add terms", detail: "definitions", x: 67, y: 43, icon: ShieldCheck },
+      { label: "Review fields", detail: "required inputs", x: 36, y: 21, icon: ClipboardCheck },
+      { label: "Enable action", detail: "capability gate", x: 67, y: 43, icon: ShieldCheck },
     ],
     edges: [
       { d: "M122 166 C186 132 232 109 306 110" },

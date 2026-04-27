@@ -60,4 +60,39 @@ describe("createMcpClient", () => {
       "OpenMetadata MCP request failed with HTTP 401",
     );
   });
+
+  it("throws when a tools/call response is marked as an MCP error", async () => {
+    const fetchFn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        text: async () =>
+          JSON.stringify({ result: { protocolVersion: "2024-11-05" } }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        text: async () =>
+          JSON.stringify({
+            result: {
+              isError: true,
+              content: [
+                {
+                  type: "text",
+                  text: "Authorization error: operation not allowed",
+                },
+              ],
+            },
+          }),
+      });
+
+    const client = createMcpClient({
+      host: "https://sandbox.open-metadata.org",
+      token: "test-token",
+      fetchFn: fetchFn as never,
+    });
+
+    await expect(client.callTool("create_glossary", {})).rejects.toThrow(
+      "Authorization error",
+    );
+  });
 });

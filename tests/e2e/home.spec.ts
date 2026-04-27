@@ -1,13 +1,28 @@
 import { expect, test } from "@playwright/test";
 
-test("home page renders the workflow buttons", async ({ page }) => {
+test("landing page links to the workspace", async ({ page }) => {
   await page.goto("/");
   await expect(
     page.getByRole("heading", {
-      name: "Steward Copilot for governed metadata workflows.",
+      name: /Governed metadata workflows/,
     }),
   ).toBeVisible();
-  await expect(page.getByText("Guided Workflow Presets")).toBeVisible();
+  await expect(page.getByRole("link", { name: /Launch workspace/ })).toBeVisible();
+});
+
+test("workspace page renders the workflow buttons", async ({ page }) => {
+  await page.goto("/home");
+  await expect(page.getByRole("heading", { name: "Steward Copilot" })).toBeVisible();
+  await expect(page.getByText("Workflow Presets")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Copilot", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Build workflow" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /PII impact report/ }),
+  ).toBeVisible();
   await expect(
     page.getByRole("button", { name: /Search customer PII/ }),
   ).toBeVisible();
@@ -34,9 +49,9 @@ test("schema inspection renders mocked MCP schema", async ({ page }) => {
     });
   });
 
-  await page.goto("/");
+  await page.goto("/home");
   await page
-    .getByRole("button", { name: /Bonus Inspect extension schema/ })
+    .getByRole("button", { name: /Inspect extension schema/ })
     .click();
   await expect(
     page.getByRole("heading", { name: "Inspect extension schema" }),

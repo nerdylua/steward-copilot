@@ -61,6 +61,20 @@ export function createMcpClient({
     return payload.result as T;
   }
 
+  function assertToolResult(result: MCPToolCallResult) {
+    if (!result.isError) {
+      return result;
+    }
+
+    const message =
+      result.content
+        .map((item) => item.text)
+        .filter(Boolean)
+        .join("\n") || "OpenMetadata MCP tool call failed";
+
+    throw new Error(message);
+  }
+
   async function initialize() {
     if (initialized) {
       return;
@@ -93,10 +107,11 @@ export function createMcpClient({
       args: Record<string, unknown>,
     ): Promise<MCPToolCallResult> {
       await initialize();
-      return request<MCPToolCallResult>("tools/call", {
+      const result = await request<MCPToolCallResult>("tools/call", {
         name,
         arguments: args,
       });
+      return assertToolResult(result);
     },
   };
 }

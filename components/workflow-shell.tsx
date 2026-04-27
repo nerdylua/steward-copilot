@@ -19,6 +19,23 @@ type WorkflowPreset = {
 
 const workflowPresets: WorkflowPreset[] = [
   {
+    name: "PII impact report",
+    eyebrow: "Copilot",
+    endpoint: "/api/workflows/read",
+    description:
+      "Search for PII tables, inspect the strongest match, fetch lineage, and return a steward-readable impact brief.",
+    payload: {
+      workflow: "piiImpactReport",
+      query: "customer pii",
+      entityType: "table",
+      limit: 5,
+      maxEntities: 1,
+      upstreamDepth: 1,
+      downstreamDepth: 2,
+      fallbackFqn: "sample_data.ecommerce_db.shopify.raw_customer",
+    },
+  },
+  {
     name: "Search customer PII",
     eyebrow: "Step 1",
     endpoint: "/api/workflows/read",
@@ -45,34 +62,8 @@ const workflowPresets: WorkflowPreset[] = [
     },
   },
   {
-    name: "Create glossary",
-    eyebrow: "Step 3",
-    endpoint: "/api/workflows/write",
-    description:
-      "Create a governed business glossary when the instance exposes create_glossary.",
-    payload: {
-      workflow: "createGlossary",
-      name: "Stewardship Terms",
-      description: "Business terms curated for governed metadata workflows.",
-      mutuallyExclusive: false,
-    },
-  },
-  {
-    name: "Create glossary term",
-    eyebrow: "Step 4",
-    endpoint: "/api/workflows/write",
-    description:
-      "Create a safe glossary term through the documented create_glossary_term tool.",
-    payload: {
-      workflow: "createGlossaryTerm",
-      glossary: "Stewardship Terms",
-      name: "Customer Acquisition Cost",
-      description: "Total acquisition spend divided by acquired customers.",
-    },
-  },
-  {
     name: "Inspect extension schema",
-    eyebrow: "Bonus",
+    eyebrow: "Step 3",
     endpoint: "/api/workflows/write",
     description:
       "Inspect how governed actions are enabled only after tool-schema discovery.",
@@ -114,10 +105,74 @@ function extractSchema(response: unknown) {
   return null;
 }
 
+function extractSummary(response: unknown) {
+  if (
+    typeof response !== "object" ||
+    response === null ||
+    !("result" in response)
+  ) {
+    return null;
+  }
+
+  const result = (response as { result?: unknown }).result;
+  if (
+    typeof result === "object" &&
+    result !== null &&
+    "summary" in result &&
+    typeof (result as { summary?: unknown }).summary === "string"
+  ) {
+    return (result as { summary: string }).summary;
+  }
+
+  return null;
+}
+
+function resolveCopilotPreset(prompt: string) {
+  const normalizedPrompt = prompt.toLowerCase();
+  const piiImpactPreset = workflowPresets.find(
+    (preset) => preset.name === "PII impact report",
+  );
+
+  if (
+    piiImpactPreset &&
+    normalizedPrompt.includes("pii") &&
+    (normalizedPrompt.includes("impact") ||
+      normalizedPrompt.includes("lineage") ||
+      normalizedPrompt.includes("downstream") ||
+      normalizedPrompt.includes("report"))
+  ) {
+    return {
+      preset: piiImpactPreset,
+      reply:
+        "Built a PII impact report workflow: search_metadata -> get_entity_details -> get_entity_lineage -> human-readable summary.",
+    };
+  }
+
+  if (normalizedPrompt.includes("schema") || normalizedPrompt.includes("capability")) {
+    return {
+      preset: workflowPresets.find((preset) => preset.name === "Inspect extension schema"),
+      reply:
+        "Mapped that to the schema inspection workflow so the server can verify MCP tool capabilities before writes.",
+    };
+  }
+
+  return {
+    preset: workflowPresets.find((preset) => preset.name === "Search customer PII"),
+    reply:
+      "Mapped that to metadata search. Add words like downstream, lineage, impact, or report for the full PII impact report.",
+  };
+}
+
 export function WorkflowShell() {
   const [selectedPreset, setSelectedPreset] = useState(initialPreset);
   const [payload, setPayload] = useState(() =>
     stringifyPayload(initialPreset.payload),
+  );
+  const [copilotPrompt, setCopilotPrompt] = useState(
+    "Find PII tables and show downstream impact",
+  );
+  const [copilotReply, setCopilotReply] = useState(
+    "Ask the copilot to translate a stewardship goal into one of the supported workflow payloads.",
   );
   const [result, setResult] = useState<unknown>({
     ok: true,
@@ -128,6 +183,23 @@ export function WorkflowShell() {
   function choosePreset(preset: WorkflowPreset) {
     setSelectedPreset(preset);
     setPayload(stringifyPayload(preset.payload));
+  }
+
+  function applyCopilotPrompt() {
+    const trimmedPrompt = copilotPrompt.trim();
+    if (!trimmedPrompt) {
+      setCopilotReply("Enter a stewardship goal and I will build a workflow payload.");
+      return;
+    }
+
+    const suggestion = resolveCopilotPreset(trimmedPrompt);
+    if (!suggestion.preset) {
+      setCopilotReply("I could not map that request to a supported workflow yet.");
+      return;
+    }
+
+    choosePreset(suggestion.preset);
+    setCopilotReply(suggestion.reply);
   }
 
   async function runWorkflow() {
@@ -172,6 +244,7 @@ export function WorkflowShell() {
   }
 
   const inspectedSchema = extractSchema(result);
+  const summary = extractSummary(result);
 
   return (
     <main className="min-h-screen bg-[#f7f4ef] px-4 py-5 text-slate-950 sm:px-6 lg:px-8">
@@ -209,11 +282,44 @@ export function WorkflowShell() {
         <div className="mt-8 grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
           <section className="rounded-[28px] border border-slate-950/10 bg-white/85 p-5 shadow-[0_18px_40px_-30px_rgba(15,23,42,0.45)] backdrop-blur">
             <h2 className="font-heading text-lg font-semibold">
+              Copilot
+            </h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Describe the stewardship outcome. The copilot converts it into a
+              supported workflow payload you can inspect before running.
+            </p>
+            <div className="mt-4 rounded-[20px] border border-[#F04D26]/20 bg-[#fff7f3] p-4">
+              <label
+                className="text-sm font-medium text-slate-700"
+                htmlFor="copilot-prompt"
+              >
+                Prompt
+              </label>
+              <textarea
+                className="mt-2 min-h-24 w-full rounded-[16px] border border-slate-950/10 bg-white p-3 text-sm leading-relaxed text-slate-900 outline-none ring-[#F04D26]/30 transition placeholder:text-slate-400 focus:ring-2"
+                id="copilot-prompt"
+                onChange={(event) => setCopilotPrompt(event.target.value)}
+                placeholder="Find PII tables and show downstream impact"
+                value={copilotPrompt}
+              />
+              <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <button
+                  className="rounded-[13px] bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                  onClick={applyCopilotPrompt}
+                  type="button"
+                >
+                  Build workflow
+                </button>
+                <p className="text-sm text-slate-600">{copilotReply}</p>
+              </div>
+            </div>
+
+            <h2 className="mt-6 font-heading text-lg font-semibold">
               Workflow Presets
             </h2>
             <p className="mt-1 text-sm text-slate-600">
-              Pick a preset, adjust the payload, then run it against the
-              connected MCP tools.
+              Or pick a preset directly, adjust the payload, then run it against
+              the connected MCP tools.
             </p>
             <div className="mt-5 space-y-3">
               {workflowPresets.map((preset) => {
@@ -285,7 +391,10 @@ export function WorkflowShell() {
         </div>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_0.85fr]">
-          <ResultPanel result={result} />
+          <ResultPanel
+            result={summary ?? result}
+            title={summary ? "Copilot Summary" : "MCP Output"}
+          />
           {inspectedSchema ? (
             <SchemaPanel
               schema={inspectedSchema.schema}

@@ -12,7 +12,7 @@ const faqData: FAQItem[] = [
     },
     {
         question: "What workflows are included?",
-        answer: "The workspace includes guided paths for metadata search, lineage impact review, glossary creation, glossary term creation, and tool-schema inspection."
+        answer: "The workspace includes guided paths for metadata search, lineage impact review, PII impact reports, and tool-schema inspection."
     },
     {
         question: "How does it keep governance actions controlled?",
